@@ -16,7 +16,7 @@ module StructureableMixins::Roles
   end
   
   def fill_cache
-    super
+    super if defined?(super)
     if respond_to?(:child_groups) # TODO: Refactor this. It should be possible to find the admins for a user.
       find_admins
       admins_of_ancestors
@@ -115,7 +115,11 @@ module StructureableMixins::Roles
   
   def officers_of_self_and_parent_groups
     cached do
-      direct_officers + (parent_groups.collect { |parent_group| parent_group.direct_officers }.flatten)
+      if defined? parent_groups
+        direct_officers + (parent_groups.collect { |parent_group| parent_group.direct_officers }.flatten)
+      else
+        direct_officers
+      end
     end
   end
   
@@ -140,7 +144,13 @@ module StructureableMixins::Roles
   end
   
   def officers_of_ancestor_groups
-    cached { ancestor_groups.collect { |ancestor| ancestor.find_officers }.flatten }
+    cached do
+      if defined? ancestor_groups
+        ancestor_groups.collect { |ancestor| ancestor.find_officers }.flatten
+      else
+        []
+      end
+    end
   end
   
   def officers_of_self_and_ancestors
